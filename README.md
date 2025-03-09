@@ -29,8 +29,8 @@ This React application showcases two main features: a customizable calendar and 
 ## Setup and Installation
 1. **Clone the repository**:
    ```
-   git clone <repository-url>
-   cd <repository-directory>
+   git clone [<repository-url>](https://github.com/lalithnarayan/shield_assignment.git)
+   cd shield_assignment
    ```
 
 2. **Install dependencies**:
@@ -42,7 +42,7 @@ This React application showcases two main features: a customizable calendar and 
    ```
    npm start
    ```
-   This command runs the app in the development mode. Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+   This command runs the app in the development mode. Open [http://localhost:5000](http://localhost:5000) to view it in the browser.
 
 ## Configuration
 - **Timezone selection**: Modify the list of timezones by editing the `timezones` array in the `Calendar` component.
@@ -53,15 +53,5 @@ This React application showcases two main features: a customizable calendar and 
 - **Changing Timezone**: Use the dropdown in the calendar to select different timezones, which updates how dates are displayed.
 - **Sorting and Searching Table**: Click on column headers to sort data. Use the search bar to filter results based on specific columns.
 
-## Data Fetching
-Data for the table is fetched based on the selected date range and timezone. Ensure your backend API is capable of handling requests with these parameters.
-
-## Contributions
-Contributions are welcome. For major changes, please open an issue first to discuss what you would like to change. Ensure to update tests as appropriate.
-
-## License
-Distributed under the MIT License. See `LICENSE` for more information.
-
----
 
 This README provides a comprehensive guide to help users understand and navigate your application effectively. Adjust paths, URLs, and specific instructions based on your actual repository and deployment setup.
