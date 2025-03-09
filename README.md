@@ -35,12 +35,12 @@ This React application showcases two main features: a customizable calendar and 
 
 2. **Install dependencies**:
    ```
-   npm install
+   pnpm install
    ```
 
 3. **Run the application**:
    ```
-   npm start
+   pnpm run dev
    ```
    This command runs the app in the development mode. Open [http://localhost:5000](http://localhost:5000) to view it in the browser.
 
