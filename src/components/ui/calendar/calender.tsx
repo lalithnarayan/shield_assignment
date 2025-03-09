@@ -1,17 +1,15 @@
-import { CalendarProvider } from "./calendarContext";
-import { RangeSelectContent } from "./rangePicker";
-import { Options as CalendarOptions } from "./useCalendar";
+import { CalendarProvider } from './calendarContext'
+import { RangeSelectContent } from './rangePicker'
+import { Options as CalendarOptions } from './useCalendar'
 
-interface RangeSelectProps extends CalendarOptions {
-    onRangeSelect?: (start: Date, end: Date) => void;
-}
+type RangeSelectProps = CalendarOptions
 
-const RangeSelect: React.FC<RangeSelectProps> = ({onRangeSelect, ...props}) => {
+const RangeSelect: React.FC<RangeSelectProps> = (props) => {
   return (
     <CalendarProvider options={props}>
-      <RangeSelectContent onRangeSelect={onRangeSelect} />
+      <RangeSelectContent />
     </CalendarProvider>
-  );
-};
+  )
+}
 
-export default RangeSelect;
+export default RangeSelect

@@ -300,7 +300,7 @@ describe('selected', () => {
       const date = getDate()
 
       act(() => result.current.selectRange(set(date, { date: 1 }), set(date, { date: 3 })))
-      act(() => result.current.deselectRange(set(date, { date: 1 }), set(date, { date: 3 })))
+      act(() => result.current.deselectRange())
 
       expect(result.current.selected.length).toBe(0)
       expect(result.current.isSelected(set(date, { date: 1 }))).toBe(false)
@@ -422,48 +422,80 @@ it('should not allow selecting a date marked as disabled', () => {
   expect(result.current.error).toBe('One or more selected dates are out of range or disabled.')
 })
 
-describe("Weekend Disabling Feature", () => {
-  it("should mark a Saturday as disabled", () => {
+describe('Weekend Disabling Feature', () => {
+  it('should mark a Saturday as disabled', () => {
     // June 6, 2020 was a Saturday.
-    const saturday = set(new Date(), { year: 2020, month: Month.JUNE, date: 6, hours: 0, minutes: 0, seconds: 0, milliseconds: 0 });
-    const { result } = renderHook(() => useCalendar({ disableWeekends: true }));
-    const info = result.current.getDateInfo(saturday);
-    expect(info).toEqual({ message: "Weekends are disabled", disabled: true });
-  });
+    const saturday = set(new Date(), {
+      year: 2020,
+      month: Month.JUNE,
+      date: 6,
+      hours: 0,
+      minutes: 0,
+      seconds: 0,
+      milliseconds: 0,
+    })
+    const { result } = renderHook(() => useCalendar({ disableWeekends: true }))
+    const info = result.current.getDateInfo(saturday)
+    expect(info).toEqual({ message: 'Weekends are disabled', disabled: true })
+  })
 
-  it("should mark a Sunday as disabled", () => {
+  it('should mark a Sunday as disabled', () => {
     // June 7, 2020 was a Sunday.
-    const sunday = set(new Date(), { year: 2020, month: Month.JUNE, date: 7, hours: 0, minutes: 0, seconds: 0, milliseconds: 0 });
-    const { result } = renderHook(() => useCalendar({ disableWeekends: true }));
-    const info = result.current.getDateInfo(sunday);
-    expect(info).toEqual({ message: "Weekends are disabled", disabled: true });
-  });
+    const sunday = set(new Date(), {
+      year: 2020,
+      month: Month.JUNE,
+      date: 7,
+      hours: 0,
+      minutes: 0,
+      seconds: 0,
+      milliseconds: 0,
+    })
+    const { result } = renderHook(() => useCalendar({ disableWeekends: true }))
+    const info = result.current.getDateInfo(sunday)
+    expect(info).toEqual({ message: 'Weekends are disabled', disabled: true })
+  })
 
-  it("should allow selection of a weekday", () => {
+  it('should allow selection of a weekday', () => {
     // June 3, 2020 was a Wednesday.
-    const wednesday = set(new Date(), { year: 2020, month: Month.JUNE, date: 3, hours: 0, minutes: 0, seconds: 0, milliseconds: 0 });
-    const { result } = renderHook(() => useCalendar({ disableWeekends: true }));
-    const info = result.current.getDateInfo(wednesday);
+    const wednesday = set(new Date(), {
+      year: 2020,
+      month: Month.JUNE,
+      date: 3,
+      hours: 0,
+      minutes: 0,
+      seconds: 0,
+      milliseconds: 0,
+    })
+    const { result } = renderHook(() => useCalendar({ disableWeekends: true }))
+    const info = result.current.getDateInfo(wednesday)
     // No info is returned for a weekday (i.e. undefined means not disabled)
-    expect(info).toBeUndefined();
+    expect(info).toBeUndefined()
 
     // Try selecting the weekday.
     act(() => {
-      result.current.select(wednesday);
-    });
-    expect(result.current.isSelected(wednesday)).toBe(true);
-  });
+      result.current.select(wednesday)
+    })
+    expect(result.current.isSelected(wednesday)).toBe(true)
+  })
 
-  it("should prevent selection of a weekend day", () => {
+  it('should prevent selection of a weekend day', () => {
     // Use a Saturday date.
-    const saturday = set(new Date(), { year: 2020, month: Month.JUNE, date: 6, hours: 0, minutes: 0, seconds: 0, milliseconds: 0 });
-    const { result } = renderHook(() => useCalendar({ disableWeekends: true }));
+    const saturday = set(new Date(), {
+      year: 2020,
+      month: Month.JUNE,
+      date: 6,
+      hours: 0,
+      minutes: 0,
+      seconds: 0,
+      milliseconds: 0,
+    })
+    const { result } = renderHook(() => useCalendar({ disableWeekends: true }))
     act(() => {
-      result.current.select(saturday);
-    });
+      result.current.select(saturday)
+    })
     // The Saturday should not be selected.
-    expect(result.current.isSelected(saturday)).toBe(false);
+    expect(result.current.isSelected(saturday)).toBe(false)
     // An appropriate error message should be set.
-    expect(result.current.error).toBe("One or more selected dates are out of range or disabled.");
-  });
-});
+    expect(result.current.error).toBe('One or more selected dates are out of range or disabled.')
+  })
+})

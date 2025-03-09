@@ -1,3 +1,1 @@
-export * from './tableWrapper'
-
-export { default } from './tableWrapper'
+export { default as TablePage } from './tableWrapper'

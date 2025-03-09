@@ -1,4 +1,4 @@
-import { faker } from "@faker-js/faker"
+import { faker } from '@faker-js/faker'
 
 export interface ApiParams {
   startDate: Date | null
@@ -7,20 +7,19 @@ export interface ApiParams {
 }
 
 export interface TableData {
-  id: string;
-  name: string;
-  date: string;
-  amount: number;
-  status: string;
-  email: string;
-  userID: string;
-  score: number;
+  id: number
+  name: string
+  date: string
+  amount: string
+  status: 'pending' | 'processing' | 'completed' | 'failed'
+  email: string
+  userID: string
+  score: number
 }
 
 // Function to fetch data based on date range
 export const fetchTableData = async (): Promise<TableData[]> => {
   try {
-
     // In a real implementation, you'd send a request with these parameters
     // For this demo, simulate a network request
     await new Promise((resolve) => setTimeout(resolve, 500))
@@ -54,7 +53,7 @@ function formatDateWithTimezone(date: Date, timezone: string): string {
   }
 }
 
-let currentId=1;
+let currentId = 1
 function generateFakeData() {
   return {
     name: faker.person.fullName(),
@@ -64,13 +63,12 @@ function generateFakeData() {
     email: faker.internet.email(),
     userID: faker.string.uuid(),
     score: faker.number.int({ min: 0, max: 100 }),
-    id:currentId++,
-  };
+    id: currentId++,
+  }
 }
 export const fakedata = faker.helpers.multiple(generateFakeData, {
   count: 50,
-});
-
+})
 
 // Function to generate mock data
 function generateMockData(): TableData[] {
