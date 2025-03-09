@@ -29,7 +29,7 @@ This React application showcases two main features: a customizable calendar and 
 ## Setup and Installation
 1. **Clone the repository**:
    ```
-   git clone [(https://github.com/lalithnarayan/shield_assignment.git)]
+   git clone (https://github.com/lalithnarayan/shield_assignment.git)
    cd shield_assignment
    ```
 
