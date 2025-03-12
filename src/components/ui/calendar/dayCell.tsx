@@ -9,6 +9,8 @@ interface DateCellProps {
 }
 
 const DateCell: React.FC<DateCellProps> = ({ day, panelMonth }) => {
+  const isOutsideMonth = day.getMonth() !== panelMonth
+
   const {
     isSelected,
     selected,
@@ -21,13 +23,13 @@ const DateCell: React.FC<DateCellProps> = ({ day, panelMonth }) => {
     select,
     selectRange,
     clearTime,
-    deselect,
     deselectRange,
-    maxRangeDays,
   } = useCalendarContext()
 
   const info = getDateInfo(day)
   const disabled = info?.disabled
+
+  // Compute whether the cell is part of a preview range during dragging.
   const inPreviewRange = useMemo(() => {
     if (!isDragging || !draggingStartDate || !hoveredDate) return false
     const [start, end] = [draggingStartDate, hoveredDate].sort(compareAsc)
@@ -36,6 +38,7 @@ const DateCell: React.FC<DateCellProps> = ({ day, panelMonth }) => {
     )
   }, [isDragging, draggingStartDate, hoveredDate, day, isDateSelectable])
 
+  // Compute dynamic CSS classes for the cell.
   const classes = useMemo(
     () =>
       [
@@ -48,8 +51,7 @@ const DateCell: React.FC<DateCellProps> = ({ day, panelMonth }) => {
     [day, disabled, isSelected, inPreviewRange],
   )
 
-  if (day.getMonth() !== panelMonth) return <div className="p-2" />
-
+  // Handle click events to select dates or ranges.
   const handleClick = (e: React.MouseEvent<HTMLDivElement>): void => {
     e.preventDefault()
     if (disabled || !isDateSelectable(day)) return
@@ -57,34 +59,53 @@ const DateCell: React.FC<DateCellProps> = ({ day, panelMonth }) => {
     if (selected.length === 0) {
       select(day)
     } else if (selected.length === 1) {
-      handleRangeSelection(day)
+      // Range selection: compare the new day with the already selected day.
+      const start = selected[0]
+      if (compareAsc(day, start) < 0) {
+        selectRange(day, start, true)
+      } else {
+        selectRange(start, day, true)
+      }
     } else {
-      // 🔥 Fix: Reset selection properly before selecting a new date
+      // Reset selection if more than one date is selected.
       deselectRange()
       select(day)
     }
   }
 
-  const handleRangeSelection = (localDay: Date) => {
-    if (selected.length === 2) {
-      // 🔥 Fix: Instead of selecting a new range, first reset selection
-      deselectRange()
-      select(localDay)
-      return
-    }
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      if (disabled || !isDateSelectable(day)) return
 
-    if (selected.length === 1) {
-      const start = selected[0]
-
-      if (compareAsc(localDay, start) < 0) {
-        selectRange(localDay, start, true)
+      if (selected.length === 0) {
+        select(day)
+      } else if (selected.length === 1) {
+        // Range selection: compare the new day with the already selected day.
+        const start = selected[0]
+        if (compareAsc(day, start) < 0) {
+          selectRange(day, start, true)
+        } else {
+          selectRange(start, day, true)
+        }
       } else {
-        selectRange(start, localDay, true)
+        // Reset selection if more than one date is selected.
+        deselectRange()
+        select(day)
       }
     }
   }
+  // Update hovered date to trigger the preview highlighting.
+  const handleDateHover = () => {
+    if (!disabled && selected.length === 1) {
+      setHoveredDate(day)
+    }
+  }
 
-  const handleDateHover = () => !disabled && selected.length === 1 && setHoveredDate(day)
+  // Render an empty placeholder for out-of-month cells.
+  if (isOutsideMonth) {
+    return <div className="p-2" />
+  }
 
   const cellContent = (
     <div
@@ -93,15 +114,14 @@ const DateCell: React.FC<DateCellProps> = ({ day, panelMonth }) => {
       aria-disabled={disabled}
       aria-label={`Date: ${format(day, 'PPP')} ${disabled ? '(Disabled)' : ''}`}
       onClick={handleClick}
-      // onKeyDown={(e) => e.key === 'Enter' && handleClick(e)}
+      onKeyDown={handleKeyDown}
+      onMouseOver={handleDateHover}
       className={classes}
-      // onMouseDown={handleClick}
-      // onMouseOver={handleDateHover}
     >
       <span className="text-sm">{format(day, 'dd')}</span>
     </div>
   )
-  console.log(selected)
+
   return info?.message ? (
     <Tooltip>
       <TooltipTrigger asChild>{cellContent}</TooltipTrigger>
