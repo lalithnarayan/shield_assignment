@@ -1,12 +1,11 @@
-// RangeSelect.tsx
 import * as Popover from '@radix-ui/react-popover'
 import { compareAsc, eachDayOfInterval, format } from 'date-fns'
 import React, { useEffect } from 'react'
 import { IoArrowForwardSharp, IoCalendarClearSharp } from 'react-icons/io5'
+import { toast } from 'react-toastify'
 import { useCalendarContext } from './calendarContext'
 import CalendarNavigation from './calendarNavigation'
 import MonthPanel from './monthPanel'
-import { toast } from 'react-toastify'
 import TimezoneSelect from './timezoneSelect'
 
 export const RangeSelectContent: React.FC = () => {

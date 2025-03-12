@@ -1,7 +1,6 @@
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import { addDays, compareAsc, eachDayOfInterval, format, isToday } from 'date-fns'
-import React from 'react'
-import { toast } from 'react-toastify'
+import { compareAsc, eachDayOfInterval, format, isToday } from 'date-fns'
+import React, { useMemo } from 'react'
 import { useCalendarContext } from './calendarContext'
 
 interface DateCellProps {
@@ -18,8 +17,6 @@ const DateCell: React.FC<DateCellProps> = ({ day, panelMonth }) => {
     isDragging,
     draggingStartDate,
     hoveredDate,
-    setIsDragging,
-    setDraggingStartDate,
     setHoveredDate,
     select,
     selectRange,
@@ -27,108 +24,94 @@ const DateCell: React.FC<DateCellProps> = ({ day, panelMonth }) => {
     deselect,
     deselectRange,
     maxRangeDays,
-    timezone,
   } = useCalendarContext()
-
-  // Render an empty cell if the day is not in the current panel's month.
-  if (day.getMonth() !== panelMonth) {
-    return <div className="p-2" />
-  }
 
   const info = getDateInfo(day)
   const disabled = info?.disabled
-
-  // Determine if this day is in the preview range.
-  let inPreviewRange = false
-  if (isDragging && draggingStartDate && hoveredDate) {
+  const inPreviewRange = useMemo(() => {
+    if (!isDragging || !draggingStartDate || !hoveredDate) return false
     const [start, end] = [draggingStartDate, hoveredDate].sort(compareAsc)
-    const interval = eachDayOfInterval({ start: clearTime(start), end: clearTime(end) })
-    inPreviewRange = interval.some((d) => d.getTime() === clearTime(day).getTime() && isDateSelectable(d))
-  }
+    return eachDayOfInterval({ start: clearTime(start), end: clearTime(end) }).some(
+      (d) => d.getTime() === clearTime(day).getTime() && isDateSelectable(d),
+    )
+  }, [isDragging, draggingStartDate, hoveredDate, day, isDateSelectable])
 
-  // Base styling.
-  const baseClasses = 'p-2 text-center rounded cursor-pointer transition-colors'
-  const disabledClasses = disabled ? 'opacity-30 cursor-not-allowed text-gray-400' : 'hover:bg-gray-100'
-  const todayClasses = isToday(day) ? 'border border-blue-500' : ''
-  const selectedClasses = isSelected(day) && !disabled ? 'bg-blue-500 text-white' : ''
-  // Apply preview styling if in drag range and not already selected.
-  const previewClasses = inPreviewRange && !isSelected(day) ? 'border border-dotted border-blue-400 bg-blue-400/20' : ''
+  const classes = useMemo(
+    () =>
+      [
+        'p-2 text-center rounded cursor-pointer transition-colors',
+        disabled ? 'opacity-30 cursor-not-allowed text-gray-400' : 'hover:bg-gray-100',
+        isToday(day) ? 'border border-blue-500' : '',
+        isSelected(day) && !disabled ? 'bg-blue-500 text-white' : '',
+        inPreviewRange && !isSelected(day) ? 'border border-dotted border-blue-400 bg-blue-400/20' : '',
+      ].join(' '),
+    [day, disabled, isSelected, inPreviewRange],
+  )
 
-  const classes = `${baseClasses} ${disabledClasses} ${todayClasses} ${selectedClasses} ${previewClasses}`
+  if (day.getMonth() !== panelMonth) return <div className="p-2" />
 
   const handleClick = (e: React.MouseEvent<HTMLDivElement>): void => {
-    e.preventDefault() // Prevent the default browser behavior (e.g., form submission)
-    if (disabled || !isDateSelectable(day)) return // Check if the day is disabled or not selectable
+    e.preventDefault()
+    if (disabled || !isDateSelectable(day)) return
 
-    // const localDay = toZonedTime(day, timezone);
-    const localDay = day
-    switch (selected.length) {
-      case 0:
-        // Start a new range with the clicked day
-        select(localDay)
-        break
-      case 1:
-        // One day is already selected
-        if (isSelected(localDay)) {
-          // If the same day is clicked again, deselect it
-          deselect(localDay)
-        } else {
-          // If the clicked day is before the currently selected date
-          if (compareAsc(localDay, selected[0]) < 0) {
-            // Set the clicked day as the new start, and the previously selected day as the end
-            selectRange(localDay, selected[0], true)
-          } else {
-            // Complete the range by selecting the end day
-            selectRange(selected[0], localDay, true)
-          }
-        }
-        break
-      case 2:
-        // Two dates are already selected
-        if (compareAsc(localDay, selected[0]) < 0) {
-          // Clicked day is before the first selected date
-          if (compareAsc(addDays(selected[0], maxRangeDays - 1), day) < 0) {
-            toast(`Cannot select more than ${maxRangeDays} days.`)
-            return
-          }
-          deselectRange()
-          selectRange(localDay, selected[1], true)
-        } else if (compareAsc(localDay, selected[1]) > 0) {
-          // Clicked day is after the last selected date
-          if (compareAsc(localDay, addDays(selected[0], maxRangeDays - 1)) > 0) {
-            toast(`Cannot select more than ${maxRangeDays} days.`)
-            return
-          }
-          deselectRange()
-          selectRange(selected[0], localDay, true)
-        }
-        break
-      default:
-        // More than two dates somehow selected, or an error state—reset
-        deselectRange()
-        select(localDay)
-        break
+    if (selected.length === 0) {
+      select(day)
+    } else if (selected.length === 1) {
+      handleRangeSelection(day)
+    } else {
+      // 🔥 Fix: Reset selection properly before selecting a new date
+      deselectRange()
+      select(day)
     }
   }
 
+  const handleRangeSelection = (localDay: Date) => {
+    if (selected.length === 2) {
+      // 🔥 Fix: Instead of selecting a new range, first reset selection
+      deselectRange()
+      select(localDay)
+      return
+    }
+
+    if (selected.length === 1) {
+      const start = selected[0]
+
+      if (compareAsc(localDay, start) < 0) {
+        selectRange(localDay, start, true)
+      } else {
+        selectRange(start, localDay, true)
+      }
+    }
+  }
+
+  const handleDateHover = () => !disabled && selected.length === 1 && setHoveredDate(day)
+
   const cellContent = (
-    <div onClick={handleClick} className={classes}>
+    <div
+      tabIndex={disabled ? -1 : 0}
+      role="button"
+      aria-disabled={disabled}
+      aria-label={`Date: ${format(day, 'PPP')} ${disabled ? '(Disabled)' : ''}`}
+      onClick={handleClick}
+      // onKeyDown={(e) => e.key === 'Enter' && handleClick(e)}
+      className={classes}
+      // onMouseDown={handleClick}
+      // onMouseOver={handleDateHover}
+    >
       <span className="text-sm">{format(day, 'dd')}</span>
     </div>
   )
-
-  if (disabled && info?.message) {
-    return (
-      <Tooltip>
-        <TooltipTrigger asChild>{cellContent}</TooltipTrigger>
-        <TooltipContent side="top" className="px-2 py-1 bg-black text-white text-xs rounded">
-          {info.message}
-        </TooltipContent>
-      </Tooltip>
-    )
-  }
-
-  return cellContent
+  console.log(selected)
+  return info?.message ? (
+    <Tooltip>
+      <TooltipTrigger asChild>{cellContent}</TooltipTrigger>
+      <TooltipContent side="top" className="px-2 py-1 bg-black text-white text-xs rounded">
+        {info.message}
+      </TooltipContent>
+    </Tooltip>
+  ) : (
+    cellContent
+  )
 }
 
 export default DateCell

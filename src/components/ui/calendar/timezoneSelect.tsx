@@ -8,7 +8,6 @@ function TimezoneSelect() {
     setTimezone(selectedTimeZone)
   }
 
-  console.log(timezone)
   return (
     <Select onValueChange={handleTimezoneChange} defaultValue={timezone}>
       <SelectTrigger className="w-full">
