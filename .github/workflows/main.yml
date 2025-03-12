@@ -32,5 +32,3 @@ jobs:
           vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
           working-directory: .  # Change if your project is in a subdirectory
           vercel-args: '--prod' # Remove or modify if you don't want to deploy to production
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
