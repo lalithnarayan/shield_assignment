@@ -16,14 +16,13 @@ const DateCell: React.FC<DateCellProps> = ({ day, panelMonth }) => {
     selected,
     getDateInfo,
     isDateSelectable,
-    isDragging,
-    draggingStartDate,
     hoveredDate,
     setHoveredDate,
     select,
     selectRange,
     clearTime,
     deselectRange,
+    maxRangeDays,
   } = useCalendarContext()
 
   const info = getDateInfo(day)
@@ -31,12 +30,26 @@ const DateCell: React.FC<DateCellProps> = ({ day, panelMonth }) => {
 
   // Compute whether the cell is part of a preview range during dragging.
   const inPreviewRange = useMemo(() => {
-    if (!isDragging || !draggingStartDate || !hoveredDate) return false
-    const [start, end] = [draggingStartDate, hoveredDate].sort(compareAsc)
+    if ( !hoveredDate) return false
+    const [startDate] = selected;
+    const [start, end] = [startDate, hoveredDate].sort(compareAsc)
     return eachDayOfInterval({ start: clearTime(start), end: clearTime(end) }).some(
       (d) => d.getTime() === clearTime(day).getTime() && isDateSelectable(d),
     )
-  }, [isDragging, draggingStartDate, hoveredDate, day, isDateSelectable])
+  }, [hoveredDate, day, isDateSelectable])
+
+
+  const rangeExceedsMax = useMemo(() => {
+    if (selected.length !== 1) return false
+    const start = selected[0]
+    // Determine the range in order (from earlier to later).
+    const [startDate, endDate] = compareAsc(day, start) < 0 ? [day, start] : [start, day]
+    const daysInRange = eachDayOfInterval({
+      start: clearTime(startDate),
+      end: clearTime(endDate),
+    }).filter((d) => isDateSelectable(d))
+    return daysInRange.length > maxRangeDays
+  }, [selected, day, maxRangeDays, clearTime, isDateSelectable])
 
   // Compute dynamic CSS classes for the cell.
   const classes = useMemo(
@@ -46,20 +59,20 @@ const DateCell: React.FC<DateCellProps> = ({ day, panelMonth }) => {
         disabled ? 'opacity-30 cursor-not-allowed text-gray-400' : 'hover:bg-gray-100',
         isToday(day) ? 'border border-blue-500' : '',
         isSelected(day) && !disabled ? 'bg-blue-500 text-white' : '',
-        inPreviewRange && !isSelected(day) ? 'border border-dotted border-blue-400 bg-blue-400/20' : '',
+        inPreviewRange && !isSelected(day) ? 'bg-blue-400/20' : '',
       ].join(' '),
     [day, disabled, isSelected, inPreviewRange],
   )
 
-  // Handle click events to select dates or ranges.
-  const handleClick = (e: React.MouseEvent<HTMLDivElement>): void => {
-    e.preventDefault()
+  const selectCell = () => {
     if (disabled || !isDateSelectable(day)) return
 
     if (selected.length === 0) {
+      // Single selection: select the clicked day.
       select(day)
     } else if (selected.length === 1) {
-      // Range selection: compare the new day with the already selected day.
+      // Range selection: first, check if adding this day exceeds the allowed range.
+      if (rangeExceedsMax) return
       const start = selected[0]
       if (compareAsc(day, start) < 0) {
         selectRange(day, start, true)
@@ -67,34 +80,26 @@ const DateCell: React.FC<DateCellProps> = ({ day, panelMonth }) => {
         selectRange(start, day, true)
       }
     } else {
-      // Reset selection if more than one date is selected.
+      // More than one date selected: reset and start over.
       deselectRange()
       select(day)
     }
   }
 
+  // Mouse click event for selection.
+  const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    e.preventDefault()
+    selectCell()
+  }
+
+  // Keyboard event (Enter key) for accessibility.
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (e.key === 'Enter') {
       e.preventDefault()
-      if (disabled || !isDateSelectable(day)) return
-
-      if (selected.length === 0) {
-        select(day)
-      } else if (selected.length === 1) {
-        // Range selection: compare the new day with the already selected day.
-        const start = selected[0]
-        if (compareAsc(day, start) < 0) {
-          selectRange(day, start, true)
-        } else {
-          selectRange(start, day, true)
-        }
-      } else {
-        // Reset selection if more than one date is selected.
-        deselectRange()
-        select(day)
-      }
+      selectCell()
     }
   }
+  
   // Update hovered date to trigger the preview highlighting.
   const handleDateHover = () => {
     if (!disabled && selected.length === 1) {
@@ -121,12 +126,12 @@ const DateCell: React.FC<DateCellProps> = ({ day, panelMonth }) => {
       <span className="text-sm">{format(day, 'dd')}</span>
     </div>
   )
-
-  return info?.message ? (
+  const tooltipMessage = rangeExceedsMax ? `Cannot select beyond ${maxRangeDays} days` : info?.message
+  return tooltipMessage ? (
     <Tooltip>
       <TooltipTrigger asChild>{cellContent}</TooltipTrigger>
       <TooltipContent side="top" className="px-2 py-1 bg-black text-white text-xs rounded">
-        {info.message}
+        {tooltipMessage}
       </TooltipContent>
     </Tooltip>
   ) : (

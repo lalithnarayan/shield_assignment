@@ -22,6 +22,7 @@ export const RangeSelectContent: React.FC = () => {
       } else {
         const range = eachDayOfInterval({ start: sorted[0], end: day })
         const diff = sorted.filter((d) => range.map((a) => a.getTime()).includes(d.getTime()))
+        
         selectRange(diff[0], diff[diff.length - 1], true)
       }
     } else {
