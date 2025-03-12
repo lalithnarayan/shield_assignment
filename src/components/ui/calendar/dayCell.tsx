@@ -30,14 +30,13 @@ const DateCell: React.FC<DateCellProps> = ({ day, panelMonth }) => {
 
   // Compute whether the cell is part of a preview range during dragging.
   const inPreviewRange = useMemo(() => {
-    if ( !hoveredDate) return false
-    const [startDate] = selected;
+    if (!hoveredDate) return false
+    const [startDate] = selected
     const [start, end] = [startDate, hoveredDate].sort(compareAsc)
     return eachDayOfInterval({ start: clearTime(start), end: clearTime(end) }).some(
       (d) => d.getTime() === clearTime(day).getTime() && isDateSelectable(d),
     )
   }, [hoveredDate, day, isDateSelectable])
-
 
   const rangeExceedsMax = useMemo(() => {
     if (selected.length !== 1) return false
@@ -83,6 +82,7 @@ const DateCell: React.FC<DateCellProps> = ({ day, panelMonth }) => {
       // More than one date selected: reset and start over.
       deselectRange()
       select(day)
+      setHoveredDate(null)
     }
   }
 
@@ -99,7 +99,7 @@ const DateCell: React.FC<DateCellProps> = ({ day, panelMonth }) => {
       selectCell()
     }
   }
-  
+
   // Update hovered date to trigger the preview highlighting.
   const handleDateHover = () => {
     if (!disabled && selected.length === 1) {
