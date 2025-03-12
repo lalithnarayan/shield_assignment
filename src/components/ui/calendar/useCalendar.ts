@@ -99,6 +99,10 @@ export interface Returns {
   viewNextYear: () => void
   selected: Date[]
   setSelected: React.Dispatch<React.SetStateAction<Date[]>>
+  isOpen: boolean
+  setOpen: React.Dispatch<React.SetStateAction<boolean>>
+  hoveredDate: Date | null
+  setHoveredDate: React.Dispatch<React.SetStateAction<Date | null>>
   clearSelected: () => void
   isSelected: (date: Date) => boolean
   select: (date: Date | Date[], replaceExisting?: boolean) => void
@@ -142,11 +146,18 @@ Options = {}): Returns => {
   const [selected, setSelectedInternal] = useState<Date[]>(initialSelected.map(clearTime))
   const [timezone, setTimezone] = useState<string>(initialTimezone)
   const [error, setError] = useState<string | null>(null)
-
+  const [isOpen, setOpen] = useState<boolean>(false)
+  const [hoveredDate, setHoveredDate] = useState<Date | null>(null)
   useEffect(() => {
     const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
     setTimezone(timeZone)
   }, [])
+
+  useEffect(() => {
+    if (!isOpen) {
+      setHoveredDate(null)
+    }
+  }, [isOpen, setHoveredDate])
 
   // isDateSelectable: returns a boolean indicating if the date can be selected.
   const isDateSelectable = useCallback(
@@ -342,5 +353,9 @@ Options = {}): Returns => {
     isDateSelectable,
     maxRangeDays,
     timezones: getAllTimeZones(),
+    isOpen,
+    setOpen,
+    hoveredDate,
+    setHoveredDate,
   }
 }

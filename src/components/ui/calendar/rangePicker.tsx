@@ -9,8 +9,8 @@ import MonthPanel from './monthPanel'
 import TimezoneSelect from './timezoneSelect'
 
 export const RangeSelectContent: React.FC = () => {
-  const { calendar, select, deselect, isSelected, selectRange, selected, timezone, error } = useCalendarContext()
-  const [open, setOpen] = React.useState(false)
+  const { calendar, select, deselect, isSelected, selectRange, selected, timezone, error, setOpen, isOpen } =
+    useCalendarContext()
 
   const handleSelect = (day: Date) => {
     const sorted = [...selected].sort((a, b) => compareAsc(a, b))
@@ -22,7 +22,7 @@ export const RangeSelectContent: React.FC = () => {
       } else {
         const range = eachDayOfInterval({ start: sorted[0], end: day })
         const diff = sorted.filter((d) => range.map((a) => a.getTime()).includes(d.getTime()))
-        
+
         selectRange(diff[0], diff[diff.length - 1], true)
       }
     } else {
@@ -39,7 +39,7 @@ export const RangeSelectContent: React.FC = () => {
 
   return (
     <div className="w-72">
-      <Popover.Root open={open} onOpenChange={setOpen}>
+      <Popover.Root open={isOpen} onOpenChange={setOpen}>
         <Popover.Trigger asChild>
           <div>
             <div className="text-xs">{timezone}</div>
@@ -57,7 +57,7 @@ export const RangeSelectContent: React.FC = () => {
                   <span className="text-xs">{format(selected[selected.length - 1], 'dd/M/yyy')}</span>
                 )}
               </div>
-              <button aria-label="Open Calendar" onClick={() => setOpen(!open)} className="p-1 focus:outline-none">
+              <button aria-label="Open Calendar" onClick={() => setOpen(!isOpen)} className="p-1 focus:outline-none">
                 <IoCalendarClearSharp />
               </button>
             </div>
